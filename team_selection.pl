@@ -1,3 +1,4 @@
+:- use_module(library(clpr)).
 /* Database of all players in the team.
  * player(Num, Pos, Pass, Shot, Ret, Def). */
 player(1, 'G', 3, 3, 1, 3).
