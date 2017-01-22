@@ -91,6 +91,7 @@ get_players(Pos, 7, CurrentPlayers, Players) :-
 	append(CurrentPlayers, [Player], CurrentPlayers),
 	Players = CurrentPlayers.
 get_players(Pos, Num, Players) :-
+	Num < 7,
 	get_player(Num, player(_, PlayerPositions, _, _, _, _)),
 	/*nonmember(Pos, PlayerPositions),*/
 	get_players(Pos, Num + 1, Players).
