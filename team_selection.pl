@@ -1,18 +1,18 @@
 :- use_module(library(clpr)).
 /* Database of all players in the team.
  * player(Num, Pos, Pass, Shot, Ret, Def). TODO: Change positions to a list. */
-player(1, 'G', 3, 3, 1, 3).
-player(2, 'C', 2, 1, 3, 2).
-player(3, 'G,F', 2, 3, 2, 2).
-player(4, 'F,C', 1, 3, 3, 1).
-player(5, 'G,F', 1, 3, 1, 2).
-player(6, 'F,C', 3, 1, 2, 3).
-player(7, 'G,F', 3, 2, 2, 1).
+player(1, ['G'], 3, 3, 1, 3).
+player(2, ['C'], 2, 1, 3, 2).
+player(3, ['G','F'], 2, 3, 2, 2).
+player(4, ['F','C'], 1, 3, 3, 1).
+player(5, ['G','F'], 1, 3, 1, 2).
+player(6, ['F','C'], 3, 1, 2, 3).
+player(7, ['G','F'], 3, 2, 2, 1).
 
 /* Main team selection entry point. */
 select_players() :-
 	/* get_random_player(2, 3, FirstPlayer), Random player selection, disabled for testing. */
-	FirstPlayer = player(2, 'C', 2, 1, 3, 2),
+	FirstPlayer = player(2, ['C'], 2, 1, 3, 2),
 	select_players([FirstPlayer], FinalTeam),
 	print(FinalTeam).
 
@@ -81,13 +81,23 @@ get_players(_, Num, _) :-
 	fail.
 get_players(Pos, 7, CurrentPlayers, Players) :-
 	get_player(7, player(_, PlayerPositions, _, _, _, _)),
-	/* TODO: ignore player 7 if Pos is not a member of PlayerPositions. */
+	/* TODO: ignore player 7 if Pos is not a member of PlayerPositions.
+	nonmember(Pos, PlayerPositions),*/
 	Players = CurrentPlayers.
 get_players(Pos, 7, CurrentPlayers, Players) :-
 	get_player(7, player(_, PlayerPositions, _, _, _, _)),
 	/* TODO: append player 7 to CurrentPlayers if Pos is a member of PlayerPositions. */
+	member(Pos, PlayerPositions),
+	append(CurrentPlayers, [Player], CurrentPlayers),
 	Players = CurrentPlayers.
 get_players(Pos, Num, Players) :-
 	get_player(Num, player(_, PlayerPositions, _, _, _, _)),
+	/*nonmember(Pos, PlayerPositions),*/
+	get_players(Pos, Num + 1, Players).
+get_players(Pos, Num, Players) :-
+	get_player(Num, player(_, PlayerPositions, _, _, _, _)),
 	/* TODO: append player Num to CurrentPlayers if Pos is a member of PlayerPositions. */
+	Num < 7,
+	member(Pos, PlayerPositions),
+	append(CurrentPlayers, [Player], CurrentPlayers),
 	get_players(Pos, Num + 1, Players).
