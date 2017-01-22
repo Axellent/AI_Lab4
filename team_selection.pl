@@ -17,14 +17,12 @@ select_players() :-
 	print(FinalTeam).
 
 /* Selects a team of 5 players with the best defence. */
-select_players(CurrentTeam, _) :-
-	length(CurrentTeam, Len),
-	Len > 5,
-	fail.
 select_players(CurrentTeam, FinalTeam) :-
 	length(CurrentTeam, 5),
 	FinalTeam = CurrentTeam.
 select_players(CurrentTeam, FinalTeam) :-
+	length(CurrentTeam, Len),
+	Len < 5,
 	get_random_player(1, 7, Player),  /* TODO: Make sure constraints are followed. */
 	append(CurrentTeam, [Player], NewTeam), 
 	select_players(NewTeam, FinalTeam).
@@ -45,6 +43,7 @@ get_random_player(Low, High, Player) :-
 get_random_player(Pos, Player) :-
 	get_players(Pos, Players),
 	length(Players, Len),
+	Len > 0,
 	random_between(0, Len, Index),
 	nth0(Index, Players, Player).
 	
@@ -75,30 +74,28 @@ get_best_def_player([player(_, _, _, _, _, Def) | TailPlayers], player(Num2, Pos
 /* Returns list of all players with position Pos (wrapper). */
 get_players(Pos, Players) :-
 	get_players(Pos, 1, [], Players).
+
 /* Returns list of all players with position Pos. */
-get_players(_, Num, _) :-
-	Num > 7,
-	fail.
-get_players(Pos, 7, CurrentPlayers, Players) :-
-	get_player(7, player(_, PlayerPositions, _, _, _, _)),
-	/* TODO: ignore player 7 if Pos is not a member of PlayerPositions.
-	nonmember(Pos, PlayerPositions),*/
+get_players(Pos, Num, CurrentPlayers, Players) :-
+	Num = 7,
+	get_player(Num, player(Num, PlayerPositions, _, _, _, _)),
+	not(member(Pos, PlayerPositions)),
 	Players = CurrentPlayers.
-get_players(Pos, 7, CurrentPlayers, Players) :-
-	get_player(7, player(_, PlayerPositions, _, _, _, _)),
-	/* TODO: append player 7 to CurrentPlayers if Pos is a member of PlayerPositions. */
+get_players(Pos, Num, CurrentPlayers, Players) :-
+	Num = 7,
+	get_player(Num, player(Num, PlayerPositions, Pass, Shot, Ret, Def)),
 	member(Pos, PlayerPositions),
-	append(CurrentPlayers, [Player], CurrentPlayers),
-	Players = CurrentPlayers.
-get_players(Pos, Num, Players) :-
+	append(CurrentPlayers, [player(Num, PlayerPositions, Pass, Shot, Ret, Def)], Players).
+get_players(Pos, Num, CurrentPlayers, Players) :-
 	Num < 7,
 	get_player(Num, player(_, PlayerPositions, _, _, _, _)),
-	/*nonmember(Pos, PlayerPositions),*/
-	get_players(Pos, Num + 1, Players).
-get_players(Pos, Num, Players) :-
-	get_player(Num, player(_, PlayerPositions, _, _, _, _)),
-	/* TODO: append player Num to CurrentPlayers if Pos is a member of PlayerPositions. */
+	not(member(Pos, PlayerPositions)),
+	NewNum is Num + 1,
+	get_players(Pos, NewNum, CurrentPlayers, Players).
+get_players(Pos, Num, CurrentPlayers, Players) :-
 	Num < 7,
+	get_player(Num, player(Num, PlayerPositions, Pass, Shot, Ret, Def)),
 	member(Pos, PlayerPositions),
-	append(CurrentPlayers, [Player], CurrentPlayers),
-	get_players(Pos, Num + 1, Players).
+	append(CurrentPlayers, [player(Num, PlayerPositions, Pass, Shot, Ret, Def)], NewCurrentPlayers),
+	NewNum is Num + 1,
+	get_players(Pos, NewNum, NewCurrentPlayers, Players).
