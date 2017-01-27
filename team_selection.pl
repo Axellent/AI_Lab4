@@ -20,12 +20,14 @@ select_players() :-
 select_players(CurrentTeam, FinalTeam) :-
 	length(CurrentTeam, 5),
 	FinalTeam = CurrentTeam.
+
 select_players(CurrentTeam, FinalTeam) :-
 	length(CurrentTeam, Len),
 	Len < 5,
 	get_random_player(1, 7, Player),  /* TODO: Make sure constraints are followed. */
-	append(CurrentTeam, [Player], NewTeam), 
-	select_players(NewTeam, FinalTeam).
+	not(member(Player, CurrentTeam)) -> append(CurrentTeam, [Player], NewTeam), 
+	select_players(NewTeam, FinalTeam); 
+	select_players(CurrentTeam, FinalTeam).
 
 /* Returns the player with the associated number. */
 get_player(Num, Player) :-
