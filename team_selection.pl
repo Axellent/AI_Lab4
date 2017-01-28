@@ -73,6 +73,45 @@ get_best_def_player([player(_, _, _, _, _, Def) | TailPlayers], player(Num2, Pos
 	Def =< Def2,
 	get_best_def_player(TailPlayers, player(Num2, Pos2, Pass2, Shot2, Ret2, Def2), BestDefPlayer).
 
+/* Returns average passing score of all players in team. */	
+get_average_pass(Team, Average) :-
+	sum_pass(Team, Sum),
+	length(Team, Length),
+	Length > 0,
+	Average is Sum / Length.
+
+/* Gets sum of the passing score for all players in team. */	
+sum_pass([], 0).
+sum_pass([player(_, _, Pass, _, _, _) | TailPlayers], Sum) :-
+	sum_pass(TailPlayers, Rest),
+	Sum is Pass + Rest.
+	
+/* Returns average shooting score of all players in team. */
+get_average_shot(Team, Average) :-
+	sum_shot(Team, Sum),
+	length(Team, Length),
+	Length > 0,
+	Average is Sum / Length.
+	
+/* Gets sum of the shooting score for all players in team. */	
+sum_shot([], 0).
+sum_shot([player(_, _, _, Shot, _, _) | TailPlayers], Sum) :-
+	sum_shot(TailPlayers, Rest),
+	Sum is Shot + Rest.
+	
+/* Returns average return score of all players in team. */
+get_average_ret(Team, Average) :-
+	sum_ret(Team, Sum),
+	length(Team, Length),
+	Length > 0,
+	Average is Sum / Length.
+	
+/* Gets sum of the return score for all players in team. */	
+sum_ret([], 0).
+sum_ret([player(_, _, _, _, Ret, _) | TailPlayers], Sum) :-
+	sum_ret(TailPlayers, Rest),
+	Sum is Ret + Rest.
+
 /* Returns list of all players with position Pos (wrapper). */
 get_players(Pos, Players) :-
 	get_players(Pos, 1, [], Players).
