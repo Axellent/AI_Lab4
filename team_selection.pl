@@ -15,7 +15,9 @@ select_players() :-
 	FirstPlayer = player(2, ['C'], 2, 1, 3, 2),
 	select_players([FirstPlayer], FinalTeam),
 	!, /* TODO: Introduce finite backtracking. */
-	print(FinalTeam),
+	sum_def(FinalTeam, TotalDef),
+	print(FinalTeam), nl,
+	print("TotalDef: "), print(TotalDef),
 	is_valid_team(FinalTeam).
 
 /* Selects a team of 5 players with the best defence. */
@@ -122,6 +124,12 @@ sum_ret([], 0).
 sum_ret([player(_, _, _, _, Ret, _) | TailPlayers], Sum) :-
 	sum_ret(TailPlayers, Rest),
 	Sum is Ret + Rest.
+	
+/* Gets sum of the defence score for all players in team. */	
+sum_def([], 0).
+sum_def([player(_, _, _, _, _, Def) | TailPlayers], Sum) :-
+	sum_def(TailPlayers, Rest),
+	Sum is Def + Rest.
 
 /* Returns list of all players with position Pos (wrapper). */
 get_players(Pos, Players) :-
