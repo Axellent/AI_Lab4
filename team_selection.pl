@@ -14,20 +14,31 @@ select_players() :-
 	/* get_random_player(2, 3, FirstPlayer), Random player selection, disabled for testing. */
 	FirstPlayer = player(2, ['C'], 2, 1, 3, 2),
 	select_players([FirstPlayer], FinalTeam),
-	print(FinalTeam).
+	!, /* TODO: Introduce finite backtracking. */
+	print(FinalTeam),
+	is_valid_team(FinalTeam).
 
 /* Selects a team of 5 players with the best defence. */
 select_players(CurrentTeam, FinalTeam) :-
 	length(CurrentTeam, 5),
 	FinalTeam = CurrentTeam.
-
+	/* TODO: Calculate total def */
 select_players(CurrentTeam, FinalTeam) :-
 	length(CurrentTeam, Len),
 	Len < 5,
-	get_random_player(1, 7, Player),  /* TODO: Make sure constraints are followed. */
-	not(member(Player, CurrentTeam)) -> append(CurrentTeam, [Player], NewTeam), 
-	select_players(NewTeam, FinalTeam); 
+	get_random_player(1, 7, Player),
+	not(member(Player, CurrentTeam)) -> append(CurrentTeam, [Player], NewTeam),
+	select_players(NewTeam, FinalTeam);
 	select_players(CurrentTeam, FinalTeam).
+
+/* True if all team constraints are satisfied. */
+is_valid_team(Team) :-
+	length(Team, TeamSize),
+	TeamSize = 5,
+	get_players_in_team_of_pos('G', Team, GuardPlayers),
+	length(GuardPlayers, NumGuards),
+	NumGuards >= 3.
+	/* TODO: Validate other positions. */
 
 /* Returns the player with the associated number. */
 get_player(Num, Player) :-
@@ -140,3 +151,30 @@ get_players(Pos, Num, CurrentPlayers, Players) :-
 	append(CurrentPlayers, [player(Num, PlayerPositions, Pass, Shot, Ret, Def)], NewCurrentPlayers),
 	NewNum is Num + 1,
 	get_players(Pos, NewNum, NewCurrentPlayers, Players).
+	
+/* Returns all players of position Pos in the team. (wrapper) */
+get_players_in_team_of_pos(_, [], _) :-
+	fail.
+get_players_in_team_of_pos(Pos, Team, FinalPlayers) :-
+	get_players_in_team_of_pos(Pos, Team, [], FinalPlayers).
+
+/* Returns all players of position Pos in the team. */
+get_players_in_team_of_pos(_, [], _, _) :-
+	fail.
+	
+get_players_in_team_of_pos(Pos, [player(_, PlayerPositions, _, _, _, _) | []], CurrentPlayers, FinalPlayers) :-
+	not(member(Pos, PlayerPositions)),
+	FinalPlayers = CurrentPlayers.
+	
+get_players_in_team_of_pos(Pos, [player(Num, PlayerPositions, Pass, Shot, Ret, Def) | []], CurrentPlayers, FinalPlayers) :-
+	member(Pos, PlayerPositions),
+	append(CurrentPlayers, [player(Num, PlayerPositions, Pass, Shot, Ret, Def)], FinalPlayers).
+	
+get_players_in_team_of_pos(Pos, [player(_, PlayerPositions, _, _, _, _) | TailPlayers], CurrentPlayers, FinalPlayers) :-
+	not(member(Pos, PlayerPositions)),
+	get_players_in_team_of_pos(Pos, TailPlayers, CurrentPlayers, FinalPlayers).
+	
+get_players_in_team_of_pos(Pos, [player(Num, PlayerPositions, Pass, Shot, Ret, Def) | TailPlayers], CurrentPlayers, FinalPlayers) :-
+	member(Pos, PlayerPositions),
+	append(CurrentPlayers, [player(Num, PlayerPositions, Pass, Shot, Ret, Def)], NewPlayers),
+	get_players_in_team_of_pos(Pos, TailPlayers, NewPlayers, FinalPlayers).
