@@ -16,8 +16,14 @@ select_players() :-
 	select_players([FirstPlayer], FinalTeam),
 	!, /* TODO: Introduce finite backtracking. */
 	sum_def(FinalTeam, TotalDef),
+	get_average_pass(FinalTeam, PassAverage),
+	get_average_shot(FinalTeam, ShotAverage),
+	get_average_ret(FinalTeam, ReturnAverage),
 	print(FinalTeam), nl,
-	print("TotalDef: "), print(TotalDef),
+	print("TotalDef: "), print(TotalDef), nl,
+	print("Average pass: "), print(PassAverage), nl,
+	print("Average shot: "), print(ShotAverage), nl,
+	print("Average return: "), print(ReturnAverage),
 	is_valid_team(FinalTeam).
 
 /* Selects a team of 5 players with the best defence. */
@@ -37,11 +43,59 @@ select_players(CurrentTeam, FinalTeam) :-
 is_valid_team(Team) :-
 	length(Team, TeamSize),
 	TeamSize = 5,
-	get_players_in_team_of_pos('G', Team, GuardPlayers),
-	length(GuardPlayers, NumGuards),
-	NumGuards >= 3.
+	is_valid_number_of_positions(Team),
+	is_sufficent_average(Team),
+	validate_players(Team).
 	/* TODO: Validate other positions. */
 
+/* True if all positions are sufficently filled. */
+is_valid_number_of_positions(Team) :-
+	get_players_in_team_of_pos('G', Team, GuardPlayers),
+	length(GuardPlayers, NumGuards),
+	NumGuards >= 3,
+	get_players_in_team_of_pos('F', Team, ForwardPlayers),
+	length(ForwardPlayers, NumForwards),
+	NumForwards >= 2,
+	get_players_in_team_of_pos('C', Team, CenterPlayers),
+	length(CenterPlayers, NumCenters),
+	NumCenters >= 1.
+	
+/* True if the team average for pass, shot and return meets the criteria. */
+is_sufficent_average(Team) :-
+	get_average_pass(Team, PassAverage),
+	PassAverage >= 2,
+	get_average_shot(Team, ShotAverage),
+	ShotAverage >= 2,
+	get_average_ret(Team, ReturnAverage),
+	ReturnAverage >= 2.
+	
+/* True if no player specific conflicts arise. */
+validate_players(Team) :-
+	get_player(1, Player),
+	member(Player, Team) -> special_rule_player1(Team) ; true,
+	either_player2_or_player3(Team).
+	
+
+/* True if player 4 and player 5 are both on the team. */	
+special_rule_player1(Team) :-
+	get_player(4, Player4),
+	member(Player4, Team),
+	get_player(5, Player5),
+	member(Player5, Team).
+	
+/* True if player 6 is not on the team. */
+special_rule_player3(Team) :-
+	get_player(6, Player),
+	not(member(Player, Team)).
+	
+/* True if exactly one of player 2 and player 3 is on the team. */	
+either_player2_or_player3(Team) :-
+	get_player(2, Player2),
+	get_player(3, Player3),
+	member(Player2, Team), not(member(Player3, Team));
+	member(Player3, Team), not(member(Player2, Team)) -> special_rule_player3(Team); 
+	fail.
+	
 /* Returns the player with the associated number. */
 get_player(Num, Player) :-
 	player(Num, Pos, Pass, Shot, Ret, Def),
