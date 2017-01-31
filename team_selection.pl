@@ -1,6 +1,7 @@
 :- use_module(library(clpr)).
+
 /* Database of all players in the team.
- * player(Num, Pos, Pass, Shot, Ret, Def). TODO: Change positions to a list. */
+ * player(Num, Pos, Pass, Shot, Ret, Def). */
 player(1, ['G'], 3, 3, 1, 3).
 player(2, ['C'], 2, 1, 3, 2).
 player(3, ['G','F'], 2, 3, 2, 2).
@@ -9,28 +10,48 @@ player(5, ['G','F'], 1, 3, 1, 2).
 player(6, ['F','C'], 3, 1, 2, 3).
 player(7, ['G','F'], 3, 2, 2, 1).
 
-/* Main team selection entry point. */
-select_players() :-
-	/* get_random_player(2, 3, FirstPlayer), Random player selection, disabled for testing. */
-	FirstPlayer = player(2, ['C'], 2, 1, 3, 2),
-	select_players([FirstPlayer], FinalTeam),
-	!, /* TODO: Introduce finite backtracking. */
-	sum_def(FinalTeam, TotalDef),
-	get_average_pass(FinalTeam, PassAverage),
-	get_average_shot(FinalTeam, ShotAverage),
-	get_average_ret(FinalTeam, ReturnAverage),
-	print(FinalTeam), nl,
+select_best_team() :-
+	select_best_team([], 0, BestTeam, BestDef, 1),
+	print("Best team: "), print(BestTeam), nl,
+	print("Best def: "), print(BestDef).
+	
+select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
+	Iteration > 10000,
+	BestTeam = CurrentBestTeam,
+	BestDef = CurrentBestDef.
+	
+select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
+	not(select_team(_, _)),
+	NewIteration is Iteration + 1,
+	select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, NewIteration).
+	
+select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
+	select_team(NewTeam, NewTotalDef),
+	NewTotalDef > CurrentBestDef,
+	NewIteration is Iteration + 1,
+	select_best_team(NewTeam, NewTotalDef, BestTeam, BestDef, NewIteration);
+	NewIteration is Iteration + 1,
+	select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, NewIteration).
+
+/* Attempts to construct a valid team. */
+select_team(Team, TotalDef) :-
+	get_random_player(2, 3, FirstPlayer),
+	select_players([FirstPlayer], Team), !,
+	sum_def(Team, TotalDef),
+	get_average_pass(Team, PassAverage),
+	get_average_shot(Team, ShotAverage),
+	get_average_ret(Team, ReturnAverage),
+	is_valid_team(Team).
+	/*print(Team), nl,
 	print("TotalDef: "), print(TotalDef), nl,
 	print("Average pass: "), print(PassAverage), nl,
 	print("Average shot: "), print(ShotAverage), nl,
-	print("Average return: "), print(ReturnAverage),
-	is_valid_team(FinalTeam).
+	print("Average return: "), print(ReturnAverage), nl.*/
 
-/* Selects a team of 5 players with the best defence. */
+/* Selects a team of 5 players. */
 select_players(CurrentTeam, FinalTeam) :-
 	length(CurrentTeam, 5),
 	FinalTeam = CurrentTeam.
-	/* TODO: Calculate total def */
 select_players(CurrentTeam, FinalTeam) :-
 	length(CurrentTeam, Len),
 	Len < 5,
@@ -46,7 +67,6 @@ is_valid_team(Team) :-
 	is_valid_number_of_positions(Team),
 	is_sufficent_average(Team),
 	validate_players(Team).
-	/* TODO: Validate other positions. */
 
 /* True if all positions are sufficently filled. */
 is_valid_number_of_positions(Team) :-
@@ -93,6 +113,8 @@ either_player2_or_player3(Team) :-
 	get_player(2, Player2),
 	get_player(3, Player3),
 	member(Player2, Team), not(member(Player3, Team));
+	get_player(2, Player2),
+	get_player(3, Player3),
 	member(Player3, Team), not(member(Player2, Team)) -> special_rule_player3(Team); 
 	fail.
 	
