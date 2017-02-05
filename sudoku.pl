@@ -1,6 +1,8 @@
 :- use_module(library(clpfd)).
 
-/* Takes in a sudoku problem as a list of lists and solves it */
+/* Takes in a sudoku problem as a list of lists and solves it.
+The program is started by calling the methods in this format:
+problem(N, S), solve(S). where N is the index of the problem to be solved.*/
 solve(Rows) :- 
 	length(Rows, 9), maplist(same_length(Rows), Rows),
 	append(Rows, Values), Values ins 1..9,
