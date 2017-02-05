@@ -24,7 +24,6 @@ select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) 
 	not(select_team(_, _)),
 	NewIteration is Iteration + 1,
 	select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, NewIteration).
-	
 select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
 	select_team(NewTeam, NewTotalDef),
 	NewTotalDef > CurrentBestDef,
@@ -32,7 +31,7 @@ select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) 
 	select_best_team(NewTeam, NewTotalDef, BestTeam, BestDef, NewIteration);
 	NewIteration is Iteration + 1,
 	select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, NewIteration).
-
+	
 /* Attempts to construct a valid team. */
 select_team(Team, TotalDef) :-
 	get_random_player(2, 3, FirstPlayer),
