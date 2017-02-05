@@ -10,16 +10,17 @@ player(5, ['G','F'], 1, 3, 1, 2).
 player(6, ['F','C'], 3, 1, 2, 3).
 player(7, ['G','F'], 3, 2, 2, 1).
 
+/* Call this predicate to start the program */
 select_best_team() :-
 	select_best_team([], 0, BestTeam, BestDef, 1),
 	print("Best team: "), print(BestTeam), nl,
 	print("Best def: "), print(BestDef).
-	
+
+/* Selects the best team from a generated pool of 10000. */
 select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
 	Iteration > 10000,
 	BestTeam = CurrentBestTeam,
 	BestDef = CurrentBestDef.
-	
 select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
 	not(select_team(_, _)),
 	NewIteration is Iteration + 1,
@@ -41,11 +42,6 @@ select_team(Team, TotalDef) :-
 	get_average_shot(Team, ShotAverage),
 	get_average_ret(Team, ReturnAverage),
 	is_valid_team(Team).
-	/*print(Team), nl,
-	print("TotalDef: "), print(TotalDef), nl,
-	print("Average pass: "), print(PassAverage), nl,
-	print("Average shot: "), print(ShotAverage), nl,
-	print("Average return: "), print(ReturnAverage), nl.*/
 
 /* Selects a team of 5 players. */
 select_players(CurrentTeam, FinalTeam) :-
