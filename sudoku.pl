@@ -126,18 +126,18 @@ colored_blocks([S1, S2, S3 | TailRow1], [S4, S5, S6 | TailRow2], [S7, S8, S9 | T
 /* Returns the number of colored squares in the list. */
 num_colored_squares([], Num) :-
 	Num = 0.
-num_colored_squares(["White" | TailColors], Num) :-
+num_colored_squares(["W" | TailColors], Num) :-
 	num_colored_squares(TailColors, Num1),
 	Num is Num1.
-num_colored_squares(["Blue" | TailColors], Num) :-
+num_colored_squares(["B" | TailColors], Num) :-
 	num_colored_squares(TailColors, Num1),
 	Num is Num1 + 1.
 
 /* Checks that all squares that are colored do not have a larger value than the number of colored squares. */
 colored_block_limit([], [], _).
-colored_block_limit([_ | TailSquares], ["White" | TailColors], NumColored) :-
+colored_block_limit([_ | TailSquares], ["W" | TailColors], NumColored) :-
 	colored_block_limit(TailSquares, TailColors,  NumColored).
-colored_block_limit([S | TailSquares], ["Blue" | TailColors], NumColored) :-
+colored_block_limit([S | TailSquares], ["B" | TailColors], NumColored) :-
 	S =< NumColored,
 	colored_block_limit(TailSquares, TailColors, NumColored).
 
