@@ -147,8 +147,7 @@ colored_block_limit([], [], _).
 colored_block_limit([_ | TailSquares], ["W" | TailColors], NumColored) :-
 	colored_block_limit(TailSquares, TailColors,  NumColored).
 colored_block_limit([S | TailSquares], ["B" | TailColors], NumColored) :-
-	print(S|TailSquares), nl,
-	S =< NumColored,
+	S #=< NumColored,
 	colored_block_limit(TailSquares, TailColors, NumColored).
 
 /* Prints a sudoku board row for row. */
