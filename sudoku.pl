@@ -54,7 +54,16 @@ problem(5, "E", [
 	[_,_,4,_,_,_,_,_,_],
 	[_,_,_,_,_,_,_,_,_],
 	[_,_,_,_,_,3,8,_,_]],	
-	[[]]).
+	[
+	["W", "W", "W", "B", "B", "B", "W", "B", "B"],
+	["W", "W", "W", "B", "W", "B", "B", "B", "B"],
+	["B", "B", "W", "B", "B", "W", "W", "W", "B"],
+	["B", "B", "B", "B", "B", "W", "W", "W", "W"],
+	["B", "B", "B", "W", "B", "B", "W", "W", "W"],
+	["B", "B", "B", "W", "W", "B", "B", "W", "W"],
+	["B", "W", "B", "W", "W", "W", "B", "B", "B"],
+	["W", "B", "B", "W", "W", "W", "B", "B", "B"],
+	["W", "W", "W", "B", "B", "B", "B", "B", "W"]]).
 
 /* Solves one of the pre-generated soduko puzzles above and prints the result as a completed board. */
 solve_sudoku(ProblemNR, "S") :-
@@ -138,6 +147,7 @@ colored_block_limit([], [], _).
 colored_block_limit([_ | TailSquares], ["W" | TailColors], NumColored) :-
 	colored_block_limit(TailSquares, TailColors,  NumColored).
 colored_block_limit([S | TailSquares], ["B" | TailColors], NumColored) :-
+	print(S|TailSquares), nl,
 	S =< NumColored,
 	colored_block_limit(TailSquares, TailColors, NumColored).
 
