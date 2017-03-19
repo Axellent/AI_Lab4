@@ -11,7 +11,7 @@ player(6, ['F','C'], 3, 1, 2, 3).
 player(7, ['G','F'], 3, 2, 2, 1).
 
 /* Call this predicate to start the program */
-select_best_team() :-
+select_best_team :-
 	select_best_team([], 0, BestTeam, BestDef, 1),
 	print("Best team: "), print(BestTeam), nl,
 	print("Best def: "), print(BestDef).
