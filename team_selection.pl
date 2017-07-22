@@ -12,53 +12,52 @@ player(7, ['G','F'], 3, 2, 2, 1).
 
 /* Call this predicate to start the program */
 select_best_team :-
-	select_best_team([], 0, BestTeam, BestDef, 1),
+	findall(Team, select_players(Team), Teams),
+	select_team(Teams, BestTeam, BestDef),
 	print("Best team: "), print(BestTeam), nl,
 	print("Best def: "), print(BestDef).
 
-/* Selects the best team from a generated pool of 10000. */
-select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
-	Iteration > 10000,
-	BestTeam = CurrentBestTeam,
-	BestDef = CurrentBestDef.
-select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
-	not(select_team(_, _)),
-	NewIteration is Iteration + 1,
-	select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, NewIteration).
-select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, Iteration) :-
-	select_team(NewTeam, NewTotalDef),
-	NewTotalDef > CurrentBestDef,
-	NewIteration is Iteration + 1,
-	select_best_team(NewTeam, NewTotalDef, BestTeam, BestDef, NewIteration);
-	NewIteration is Iteration + 1,
-	select_best_team(CurrentBestTeam, CurrentBestDef, BestTeam, BestDef, NewIteration).
-	
-/* Attempts to construct a valid team. */
-select_team(Team, TotalDef) :-
-	get_random_player(2, 3, FirstPlayer),
-	select_players([FirstPlayer], Team), !,
-	sum_def(Team, TotalDef),
-	get_average_pass(Team, PassAverage),
-	get_average_shot(Team, ShotAverage),
-	get_average_ret(Team, ReturnAverage),
-	is_valid_team(Team).
+/* Selects a team of 5 players (wrapper). */
+select_players(Team) :-
+	select_players(Team, []).
 
 /* Selects a team of 5 players. */
-select_players(CurrentTeam, FinalTeam) :-
-	length(CurrentTeam, 5),
-	FinalTeam = CurrentTeam.
-select_players(CurrentTeam, FinalTeam) :-
+select_players([Player | TeamTail], []) :-
+	between(2, 3, Num),
+	get_player(Num, Player),
+	select_players(TeamTail, [Player]).
+select_players([Player | TeamTail], CurrentTeam) :-
 	length(CurrentTeam, Len),
-	Len < 5,
-	get_random_player(1, 7, Player),
-	not(member(Player, CurrentTeam)) -> append(CurrentTeam, [Player], NewTeam),
-	select_players(NewTeam, FinalTeam);
-	select_players(CurrentTeam, FinalTeam).
+	Len > 0, Len < 4,
+	between(1, 7, Num),
+	get_player(Num, Player),
+	not(member(Player, CurrentTeam)),
+	append(CurrentTeam, [Player], NewTeam),
+	select_players(TeamTail, NewTeam).
+select_players([Player | []], CurrentTeam) :-
+	length(CurrentTeam, 4),
+	between(1, 7, Num),
+	get_player(Num, Player),
+	not(member(Player, CurrentTeam)),
+	append(CurrentTeam, [Player], NewTeam),
+	is_valid_team(NewTeam).
+	
+/* wrapper */
+select_team([Team | TeamTail], BestTeam, BestDef) :-
+	sum_def(Team, Def).
+	select_team(TeamTail, BestTeam, BestDef, Team, Def).
+
+select_team([], BestTeam, BestDef, CurrBestTeam, CurrBestDef) :-
+	BestTeam = CurrBestTeam,
+	BestDef = CurrBestDef.
+select_team([Team | TeamTail], BestTeam, BestDef, CurrBestTeam, CurrBestDef) :-
+	sum_def(Team, Def).
+	/* def better than CurrBestDef -> select_team(TeamTail, BestTeam, BestDef, Team, Def).
+	def worse or equal to CurrBestDef? -> select_team(TeamTail, BestTeam, BestDef, CurrBestTeam, CurrBestDef), */
 
 /* True if all team constraints are satisfied. */
 is_valid_team(Team) :-
-	length(Team, TeamSize),
-	TeamSize = 5,
+	length(Team, 5),
 	is_valid_number_of_positions(Team),
 	is_sufficent_average(Team),
 	validate_players(Team).
@@ -89,7 +88,6 @@ validate_players(Team) :-
 	get_player(1, Player),
 	member(Player, Team) -> special_rule_player1(Team) ; true,
 	either_player2_or_player3(Team).
-	
 
 /* True if player 4 and player 5 are both on the team. */	
 special_rule_player1(Team) :-
@@ -117,45 +115,6 @@ either_player2_or_player3(Team) :-
 get_player(Num, Player) :-
 	player(Num, Pos, Pass, Shot, Ret, Def),
 	Player = player(Num, Pos, Pass, Shot, Ret, Def).
-
-/* Randomly returns any of the 7 players. */
-get_random_player(Low, High, Player) :-
-	Low >= 1,
-	High =< 7,
-	random_between(Low, High, Num),
-	get_player(Num, Player).
-	
-/* Randomly returns any player with the given position. */
-get_random_player(Pos, Player) :-
-	get_players(Pos, Players),
-	length(Players, Len),
-	Len > 0,
-	random_between(0, Len, Index),
-	nth0(Index, Players, Player).
-	
-/* Returns the player with the best Def (wrapper). */
-get_best_def_player([], _) :-
-	fail.
-get_best_def_player([HeadPlayer | []], BestDefPlayer) :-
-	BestDefPlayer = HeadPlayer.
-get_best_def_player([HeadPlayer | TailPlayers], BestDefPlayer) :-
-	get_best_def_player(TailPlayers, HeadPlayer, BestDefPlayer).
-
-/* Returns the player with the best Def. */
-get_best_def_player([], _, _) :-
-	fail.
-get_best_def_player([player(Num, Pos, Pass, Shot, Ret, Def) | []], player(_, _, _, _, _, Def2), BestDefPlayer) :-
-	Def > Def2,
-	BestDefPlayer = player(Num, Pos, Pass, Shot, Ret, Def).
-get_best_def_player([player(_, _, _, _, _, Def) | []], player(Num2, Pos2, Pass2, Shot2, Ret2, Def2), BestDefPlayer) :-
-	Def =< Def2,
-	BestDefPlayer = player(Num2, Pos2, Pass2, Shot2, Ret2, Def2).
-get_best_def_player([player(Num, Pos, Pass, Shot, Ret, Def) | TailPlayers], player(_, _, _, _, _, Def2), BestDefPlayer) :-
-	Def > Def2,
-	get_best_def_player(TailPlayers, player(Num, Pos, Pass, Shot, Ret, Def), BestDefPlayer).
-get_best_def_player([player(_, _, _, _, _, Def) | TailPlayers], player(Num2, Pos2, Pass2, Shot2, Ret2, Def2), BestDefPlayer) :-
-	Def =< Def2,
-	get_best_def_player(TailPlayers, player(Num2, Pos2, Pass2, Shot2, Ret2, Def2), BestDefPlayer).
 
 /* Returns average passing score of all players in team. */	
 get_average_pass(Team, Average) :-
@@ -201,35 +160,6 @@ sum_def([], 0).
 sum_def([player(_, _, _, _, _, Def) | TailPlayers], Sum) :-
 	sum_def(TailPlayers, Rest),
 	Sum is Def + Rest.
-
-/* Returns list of all players with position Pos (wrapper). */
-get_players(Pos, Players) :-
-	get_players(Pos, 1, [], Players).
-
-/* Returns list of all players with position Pos. */
-get_players(Pos, Num, CurrentPlayers, Players) :-
-	Num = 7,
-	get_player(Num, player(Num, PlayerPositions, _, _, _, _)),
-	not(member(Pos, PlayerPositions)),
-	Players = CurrentPlayers.
-get_players(Pos, Num, CurrentPlayers, Players) :-
-	Num = 7,
-	get_player(Num, player(Num, PlayerPositions, Pass, Shot, Ret, Def)),
-	member(Pos, PlayerPositions),
-	append(CurrentPlayers, [player(Num, PlayerPositions, Pass, Shot, Ret, Def)], Players).
-get_players(Pos, Num, CurrentPlayers, Players) :-
-	Num < 7,
-	get_player(Num, player(_, PlayerPositions, _, _, _, _)),
-	not(member(Pos, PlayerPositions)),
-	NewNum is Num + 1,
-	get_players(Pos, NewNum, CurrentPlayers, Players).
-get_players(Pos, Num, CurrentPlayers, Players) :-
-	Num < 7,
-	get_player(Num, player(Num, PlayerPositions, Pass, Shot, Ret, Def)),
-	member(Pos, PlayerPositions),
-	append(CurrentPlayers, [player(Num, PlayerPositions, Pass, Shot, Ret, Def)], NewCurrentPlayers),
-	NewNum is Num + 1,
-	get_players(Pos, NewNum, NewCurrentPlayers, Players).
 	
 /* Returns all players of position Pos in the team. (wrapper) */
 get_players_in_team_of_pos(_, [], _) :-
