@@ -15,7 +15,8 @@ select_best_team :-
 	findall(Team, select_players(Team), Teams),
 	select_team(Teams, BestTeam, BestDef),
 	print("Best team: "), print(BestTeam), nl,
-	print("Best def: "), print(BestDef).
+	print("Best def: "), print(BestDef), nl,
+	print("Teams: "), print(Teams). 
 
 /* Selects a team of 5 players (wrapper). */
 select_players(Team) :-
@@ -51,9 +52,13 @@ select_team([], BestTeam, BestDef, CurrBestTeam, CurrBestDef) :-
 	BestTeam = CurrBestTeam,
 	BestDef = CurrBestDef.
 select_team([Team | TeamTail], BestTeam, BestDef, CurrBestTeam, CurrBestDef) :-
-	sum_def(Team, Def).
-	/* def better than CurrBestDef -> select_team(TeamTail, BestTeam, BestDef, Team, Def).
-	def worse or equal to CurrBestDef? -> select_team(TeamTail, BestTeam, BestDef, CurrBestTeam, CurrBestDef), */
+	sum_def(Team, Def),
+	Def > CurrBestDef,
+	select_team(TeamTail, BestTeam, BestDef, Team, Def),
+	Def =< CurrBestDef,
+	select_team(TeamTail, BestTeam, BestDef, CurrBestTeam, CurrBestDef).
+	/* def better than CurrBestDef -> select_team(TeamTail, BestTeam, BestDef, Team, Def),
+	def worse or equal to CurrBestDef? -> select_team(TeamTail, BestTeam, BestDef, CurrBestTeam, CurrBestDef). */
 
 /* True if all team constraints are satisfied. */
 is_valid_team(Team) :-
