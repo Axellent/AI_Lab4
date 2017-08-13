@@ -45,20 +45,20 @@ select_players([Player | []], CurrentTeam) :-
 	
 /* wrapper */
 select_team([Team | TeamTail], BestTeam, BestDef) :-
-	sum_def(Team, Def).
+	sum_def(Team, Def),
 	select_team(TeamTail, BestTeam, BestDef, Team, Def).
 
 select_team([], BestTeam, BestDef, CurrBestTeam, CurrBestDef) :-
 	BestTeam = CurrBestTeam,
 	BestDef = CurrBestDef.
-select_team([Team | TeamTail], BestTeam, BestDef, CurrBestTeam, CurrBestDef) :-
+select_team([Team | TeamTail], BestTeam, BestDef, _, CurrBestDef) :-
 	sum_def(Team, Def),
 	Def > CurrBestDef,
-	select_team(TeamTail, BestTeam, BestDef, Team, Def),
+	select_team(TeamTail, BestTeam, BestDef, Team, Def).
+select_team([Team | TeamTail], BestTeam, BestDef, CurrBestTeam, CurrBestDef) :-
+	sum_def(Team, Def),
 	Def =< CurrBestDef,
 	select_team(TeamTail, BestTeam, BestDef, CurrBestTeam, CurrBestDef).
-	/* def better than CurrBestDef -> select_team(TeamTail, BestTeam, BestDef, Team, Def),
-	def worse or equal to CurrBestDef? -> select_team(TeamTail, BestTeam, BestDef, CurrBestTeam, CurrBestDef). */
 
 /* True if all team constraints are satisfied. */
 is_valid_team(Team) :-
